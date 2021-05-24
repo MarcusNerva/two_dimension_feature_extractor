@@ -11,7 +11,7 @@ import torch
 import PIL.Image as Image
 import numpy as np
 
-def extract_frames(video_path):
+def extract_frames(video_path, stride):
     try:
         cap = cv2.VideoCapture(video_path)
     except:
@@ -70,7 +70,7 @@ if __name__ == '__main__':
         for i, video_path in enumerate(video_path_list):
             video_base_path = os.path.basename(video_path)
             video_id = video_base_path.split('.')[0]
-            frames = extract_frames(video_path)
+            frames = extract_frames(video_path, stride)
             feats = extract_features(model, frames)
             f[video_id] = feats
 
