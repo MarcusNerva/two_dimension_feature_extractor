@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # @Author  : MarcusNerva
 # @Email   : yehanhua20@mails.ucas.ac.cn
-from models import models_factory, trans
+from models import models_factory_mullevel, trans
 import cv2
 import h5py
 import os
@@ -33,14 +33,21 @@ def extract_frames(video_path, stride):
 
 def extract_features(model, images):
     with torch.no_grad():
-        rgb_feats = []
+        level_0s, level_1s, level_2s, level_3s = [], [], [], []
         for img in images:
             img = trans(img).unsqueeze(0).to(device)
-            feat = model(img)
-            feat = feat.squeeze().cpu().numpy()
-            rgb_feats.append(feat)
-        rgb_feats = np.array(rgb_feats).astype(float)
-    return rgb_feats
+            feats = model(img)
+            feats = [item.squeeze(0).cpu().numpy() for item in feats]  # List[(C, H, W), ...]
+            assert len(feats) == 4
+            level_0s.append(feats[0])
+            level_1s.append(feats[1])
+            level_2s.append(feats[2])
+            level_3s.append(feats[3])
+        level_0s = np.array(level_0s).astype(float)
+        level_1s = np.array(level_1s).astype(float)
+        level_2s = np.array(level_2s).astype(float)
+        level_3s = np.array(level_3s).astype(float)
+    return level_0s, level_1s, level_2s, level_3s
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -57,12 +64,14 @@ if __name__ == '__main__':
     extension = args.extension
     stride = args.stride
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if not os.path.exists('./results'):
+        os.makedirs('./results')
     visual_feats_save_path = './results/{}.hdf5'.format(dataset_name)
     assert video_dir != '-1', 'Please set video dir!'
     assert extension != '-1', 'Please set video extension!'
     assert dataset_name != '-1', 'Please set dataset name!'
 
-    model = models_factory(model_name)
+    model = models_factory_mullevel(model_name)
     model = model.to(device)
     model.eval()
     video_path_list = glob.glob(os.path.join(video_dir, '*.{}'.format(extension)))
@@ -72,6 +81,8 @@ if __name__ == '__main__':
             video_base_path = os.path.basename(video_path)
             video_id = video_base_path.split('.')[0]
             frames = extract_frames(video_path, stride)
-            feats = extract_features(model, frames)
-            f[video_id] = feats
+            levels_feats = extract_features(model, frames)
+            f[video_id] = levels_feats
+
+    print('=' * 25, 'finished! results are save in ./results/', '=' * 25)
 

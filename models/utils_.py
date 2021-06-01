@@ -40,9 +40,34 @@ class MyResNet(ResNet):
         return x
 
 
-def _resnet(arch, block, layers, pretrained, progress, **kwargs):
-    model = MyResNet(block, layers, **kwargs)
+class MultiLevelResNet(ResNet):
+    def __init__(self, block, layers, num_classes=1000, zero_init_residual=False, groups=1, width_per_group=64,
+                 replace_stride_with_dilation=None, norm_layer=None):
+        super(MyResNet, self).__init__(block, layers, num_classes, zero_init_residual, groups, width_per_group,
+                                       replace_stride_with_dilation, norm_layer)
+
+    def _forward_impl(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.maxpool(x)
+
+        x = self.layer1(x)
+        level0 = x.detach()
+        x = self.layer2(x)
+        level1 = x.detach()
+        x = self.layer3(x)
+        level2 = x.detach()
+        x = self.layer4(x)
+        level3 = x.detach()
+
+        return level0, level1, level2, level3
+
+
+def _resnet(is_mul, arch, block, layers, pretrained, progress, **kwargs):
+    model = MyResNet(block, layers, **kwargs) if not is_mul else MultiLevelResNet(block, layers, **kwargs)
     if pretrained:
         state_dict = load_state_dict_from_url(model_urls[arch], progress=progress)
         model.load_state_dict(state_dict)
     return model
+
