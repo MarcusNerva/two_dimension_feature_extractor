@@ -82,7 +82,12 @@ if __name__ == '__main__':
             video_id = video_base_path.split('.')[0]
             frames = extract_frames(video_path, stride)
             levels_feats = extract_features(model, frames)
-            f[video_id] = levels_feats
+
+            group = f.create_group(video_id)
+            group.create_dataset('level0', data=levels_feats[0])
+            group.create_dataset('level1', data=levels_feats[1])
+            group.create_dataset('level2', data=levels_feats[2])
+            group.create_dataset('level3', data=levels_feats[3])
 
     print('=' * 25, 'finished! results are save in ./results/', '=' * 25)
 
