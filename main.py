@@ -36,7 +36,7 @@ def extract_features(model, images):
         rgb_frames = []
         for img in images:
             img = trans(img).unsqueeze(0)
-            rgb_frames.append(img)
+            rgb_frames.append(img.cpu().numpy())
         rgb_frames = np.array(rgb_frames).astype(float)
         return rgb_frames
 
