@@ -12,6 +12,13 @@ trans = transforms.Compose([
     transforms.Normalize(mean=mean, std=std)
 ])
 
+trans_mul = transforms.Compose([
+    transforms.Resize(256),
+    transforms.CenterCrop(256),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std)
+])
+
 """
 =================================ResNet================================= 
 """

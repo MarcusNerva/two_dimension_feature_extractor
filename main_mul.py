@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # @Author  : MarcusNerva
 # @Email   : yehanhua20@mails.ucas.ac.cn
-from models import models_factory_mullevel, trans
+from models import models_factory_mullevel, trans_mul
 import cv2
 import h5py
 import os
@@ -35,7 +35,7 @@ def extract_features(model, images):
     with torch.no_grad():
         level_0s, level_1s, level_2s, level_3s = [], [], [], []
         for img in images:
-            img = trans(img).unsqueeze(0).to(device)
+            img = trans_mul(img).unsqueeze(0).to(device)
             feats = model(img)
             feats = [item.squeeze(0).cpu().numpy() for item in feats]  # List[(C, H, W), ...]
             assert len(feats) == 4
