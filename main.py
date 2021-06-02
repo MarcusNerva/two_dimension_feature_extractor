@@ -32,6 +32,14 @@ def extract_frames(video_path, stride):
     return frame_list
 
 def extract_features(model, images):
+    if model is None:
+        rgb_frames = []
+        for img in images:
+            img = trans(img).unsqueeze(0)
+            rgb_frames.append(img)
+        rgb_frames = np.array(rgb_frames).astype(float)
+        return rgb_frames
+
     with torch.no_grad():
         rgb_feats = []
         for img in images:
@@ -44,7 +52,7 @@ def extract_features(model, images):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='resnext101_32x8d', help='which kind of backbone would you like to choose')
+    parser.add_argument('--model_name', type=str, default='-1', help='which kind of backbone would you like to choose? (-1 | resnext101_32x8d | ...)')
     parser.add_argument('--video_dir', type=str, default='-1')
     parser.add_argument('--extension', type=str, default='-1')
     parser.add_argument('--stride', type=int, default=5)
@@ -57,14 +65,17 @@ if __name__ == '__main__':
     extension = args.extension
     stride = args.stride
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    visual_feats_save_path = './results/{}.hdf5'.format(dataset_name)
+    visual_feats_save_path = './results/{}_{}.hdf5'.format(dataset_name, model_name if model_name != '-1' else 'rgb')
     assert video_dir != '-1', 'Please set video dir!'
     assert extension != '-1', 'Please set video extension!'
     assert dataset_name != '-1', 'Please set dataset name!'
 
-    model = models_factory(model_name)
-    model = model.to(device)
-    model.eval()
+    if model_name != '-1':
+        model = models_factory(model_name)
+        model = model.to(device)
+        model.eval()
+    else:
+        model = None
     video_path_list = glob.glob(os.path.join(video_dir, '*.{}'.format(extension)))
 
     with h5py.File(visual_feats_save_path, 'w') as f:
