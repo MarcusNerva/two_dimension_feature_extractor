@@ -19,3 +19,5 @@ def models_factory_mullevel(model_name):
     else:
         raise NotImplementedError
 
+    return ret
+
