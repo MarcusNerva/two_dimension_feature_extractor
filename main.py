@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 # @Author  : MarcusNerva
 # @Email   : yehanhua20@mails.ucas.ac.cn
-from models import models_factory, trans
+from models import models_factory, trans, trans_mul
 import cv2
 import h5py
 import os
@@ -35,7 +35,7 @@ def extract_features(model, images):
     if model is None:
         rgb_frames = []
         for img in images:
-            img = trans(img).unsqueeze(0)
+            img = trans_mul(img).unsqueeze(0)
             rgb_frames.append(img.cpu().numpy())
         rgb_frames = np.array(rgb_frames).astype(float)
         return rgb_frames
